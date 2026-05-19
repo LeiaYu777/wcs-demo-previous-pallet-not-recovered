@@ -1,0 +1,148 @@
+.placeholder-demo-shell {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #e5eef8;
+  background:
+    linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 50% 20%, rgba(59, 130, 246, 0.18), transparent 34%),
+    #08111f;
+  background-size:
+    40px 40px,
+    40px 40px,
+    100% 100%,
+    100% 100%;
+}
+
+.placeholder-card {
+  width: min(980px, 100%);
+  height: min(540px, 100%);
+  min-height: 420px;
+  display: grid;
+  grid-template-rows: 78px minmax(0, 1fr) 72px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background:
+    linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(15, 23, 42, 0.94) 42%),
+    rgba(15, 23, 42, 0.94);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
+}
+
+.placeholder-brand {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.placeholder-brand-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  display: grid;
+  place-items: center;
+  color: #08111f;
+  background: linear-gradient(135deg, #3b82f6, #22c55e);
+  font-size: 24px;
+}
+
+.placeholder-brand strong,
+.placeholder-brand span {
+  display: block;
+}
+
+.placeholder-brand strong {
+  color: #ffffff;
+  font-size: 21px;
+  line-height: 1;
+}
+
+.placeholder-brand span {
+  margin-top: 6px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.placeholder-content {
+  min-height: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 18px;
+  padding: 28px;
+  text-align: center;
+}
+
+.placeholder-stage {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  color: #bfdbfe;
+  border: 1px solid rgba(59, 130, 246, 0.42);
+  background: rgba(59, 130, 246, 0.12);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.placeholder-content h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(34px, 4.4vw, 62px);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.placeholder-content p {
+  width: min(680px, 90%);
+  margin: 0;
+  color: #cbd5e1;
+  font-size: clamp(18px, 1.8vw, 26px);
+  line-height: 1.45;
+}
+
+.placeholder-footer {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  color: #94a3b8;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  font-size: 13px;
+}
+
+.placeholder-status {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  color: #bbf7d0;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.12);
+  font-weight: 900;
+}
+
+@media (max-width: 760px) {
+  .placeholder-demo-shell {
+    padding: 14px;
+  }
+
+  .placeholder-card {
+    min-height: 360px;
+    grid-template-rows: 76px minmax(0, 1fr) 86px;
+  }
+
+  .placeholder-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+}

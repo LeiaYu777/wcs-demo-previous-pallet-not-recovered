@@ -67,12 +67,12 @@ export default function PhysicalScene({ currentStep, state, t }: PhysicalScenePr
           </defs>
           <path
             className={`route-line next-route ${state.nextRoute === "allowed" ? "allowed" : "blocked"}`}
-            d="M155 405 C330 400 585 310 820 165"
+            d="M145 390 C310 330 570 220 855 165"
             markerEnd={state.nextRoute === "allowed" ? "url(#arrow-green)" : "url(#arrow-hold)"}
           />
           <path
             className={`route-line recovery-route ${state.recoveryRoute}`}
-            d="M282 178 C390 285 520 360 700 410"
+            d="M405 210 C485 280 560 350 670 405"
             markerEnd={state.recoveryRoute === "complete" ? "url(#arrow-green)" : "url(#arrow-blue)"}
           />
         </svg>

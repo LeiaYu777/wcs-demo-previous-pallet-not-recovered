@@ -1,12 +1,14 @@
 export type Language = "zh" | "ja";
 
-export type DemoStep = 1 | 2 | 3 | 4 | 5 | 6;
+export type DemoStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type StageId = 1 | 2 | 3;
 
-export type CheckState = "ok" | "ng" | "hold";
+export type CheckState = "ok" | "ng" | "hold" | "waiting";
 
 export type CheckKey = "takt" | "previousRecovery" | "pointIdle" | "nextPermission";
+
+export type AsrsLineCheckKey = "outArrival" | "inspectConfirm" | "targetReceivable" | "agvPermission";
 
 export type TaskState = "notGenerated" | "pending" | "running" | "completed" | "hold" | "waitingPoint" | "executable";
 
@@ -16,7 +18,37 @@ export type NextPointState = "waiting" | "allowed";
 
 export type RouteState = "hidden" | "blocked" | "active" | "complete" | "allowed";
 
-export type LogKey = "taktDone" | "fieldStillWaiting" | "nextHeld" | "recoveryCreated" | "recoveryDone" | "nextAllowed";
+export type LogKey =
+  | "taktDone"
+  | "fieldStillWaiting"
+  | "nextHeld"
+  | "recoveryCreated"
+  | "recoveryDone"
+  | "nextAllowed"
+  | "planImported"
+  | "timeTriggered"
+  | "linePointAllowed"
+  | "deliveryCreated"
+  | "deliveryCompleted"
+  | "returnCreated"
+  | "flowClosed"
+  | "asrsOutArrived"
+  | "asrsInspectDone"
+  | "asrsTargetAllowed"
+  | "asrsTaskCreated"
+  | "asrsTaskRunning"
+  | "asrsFallbackReady"
+  | "asrsFlowComplete";
+
+export type SmallLineCheckKey = "planImport" | "timeCall" | "linePoint" | "deliveryPermission";
+
+export type SmallLinePointStatus = "empty" | "receiving" | "delivered" | "emptyPalletWaiting" | "available";
+
+export type SmallLinePlanStatus = "imported" | "triggered";
+
+export type SmallLineAgvStatus = "standby" | "ready" | "pending" | "delivering" | "delivered" | "returning" | "returned";
+
+export type AsrsLineAgvStatus = "standby" | "confirming" | "pending" | "running" | "delivered" | "strategy";
 
 export interface CheckResult {
   key: CheckKey;
@@ -40,6 +72,52 @@ export interface DemoDerivedState {
   nextDeliveryAllowed: boolean;
 }
 
+export interface SmallLineCheckResult {
+  key: SmallLineCheckKey;
+  state: CheckState;
+}
+
+export interface AsrsLineCheckResult {
+  key: AsrsLineCheckKey;
+  state: CheckState;
+}
+
+export interface SmallLineDerivedState {
+  activeStage: StageId;
+  planStatus: SmallLinePlanStatus;
+  linePointStatus: SmallLinePointStatus;
+  agvStatus: SmallLineAgvStatus;
+  deliveryTaskStatus: TaskState;
+  returnTaskStatus: TaskState;
+  checks: SmallLineCheckResult[];
+  deliveryRoute: RouteState;
+  returnRoute: RouteState;
+  showMaterialAtSource: boolean;
+  showMaterialAtLine: boolean;
+  showEmptyPalletAtLine: boolean;
+  showAgv: boolean;
+  isClosed: boolean;
+}
+
+export interface AsrsLineDerivedState {
+  activeStage: StageId;
+  outStatus: "arrived" | "released";
+  inspectStatus: "waiting" | "confirmed";
+  targetStatus: "waiting" | "available" | "delivered";
+  bufferStatus: "standby" | "option";
+  agvStatus: AsrsLineAgvStatus;
+  deliveryTaskStatus: TaskState;
+  checks: AsrsLineCheckResult[];
+  outInspectRoute: RouteState;
+  deliveryRoute: RouteState;
+  bufferRoute: RouteState;
+  showPalletAtOut: boolean;
+  showPalletAtInspect: boolean;
+  showPalletAtTarget: boolean;
+  showStrategyBoard: boolean;
+  isClosed: boolean;
+}
+
 export interface TranslationDict {
   app: {
     brand: string;
@@ -58,6 +136,7 @@ export interface TranslationDict {
     loop: string;
     voice: string;
     subtitle: string;
+    home: string;
   };
   stages: Record<StageId, { title: string; description: string }>;
   panels: {
@@ -87,27 +166,68 @@ export interface TranslationDict {
     recoveryCreatedHint: string;
     recoveryDoneHint: string;
     nextAllowedHint: string;
+    planCard: string;
+    noUpperSystem: string;
+    materialAreaRole: string;
+    materialAreaTitle: string;
+    supplyRole: string;
+    supplyTitle: string;
+    linePointRole: string;
+    linePointTitle: string;
+    bottlePallet: string;
+    emptyPallet: string;
+    deliveryRoute: string;
+    returnRoute: string;
+    deliveryRouteReady: string;
+    deliveryRouteRunning: string;
+    deliveryRouteDone: string;
+    returnRouteRunning: string;
+    returnRouteDone: string;
+    flowClosed: string;
   };
   points: {
     waitingRecovery: string;
     empty: string;
     waiting: string;
     allowedIn: string;
+    receiving: string;
+    delivered: string;
+    emptyPalletWaiting: string;
+    available: string;
   };
+  plan: {
+    title: string;
+    statusImported: string;
+    statusTriggered: string;
+    time: string;
+    line: string;
+    product: string;
+    material: string;
+    qty: string;
+    target: string;
+    materialValue: string;
+    qtyValue: string;
+  };
+  smallChecks: Record<SmallLineCheckKey, string>;
+  agvStatus: Record<SmallLineAgvStatus, string>;
   checks: Record<CheckKey, string>;
   status: Record<CheckState | TaskState, string>;
   tasks: {
+    deliveryTitle: string;
     recoveryTitle: string;
     nextTitle: string;
     taskId: string;
     taskType: string;
+    material: string;
+    qty: string;
     from: string;
     to: string;
     status: string;
+    deliveryType: string;
     recoveryType: string;
     nextType: string;
   };
   subtitles: Record<DemoStep, string>;
-  logs: Record<LogKey, string>;
+  logs: Record<string, string>;
   stepNotes: Record<DemoStep, string>;
 }

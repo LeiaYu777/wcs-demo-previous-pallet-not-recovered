@@ -10,7 +10,7 @@ function iconForState(state: CheckState | TaskState) {
   if (state === "ok" || state === "completed" || state === "executable") return <CheckCircleFilled />;
   if (state === "ng") return <CloseCircleFilled />;
   if (state === "running" || state === "pending" || state === "waitingPoint") return <ClockCircleOutlined />;
-  if (state === "hold") return <PauseCircleFilled />;
+  if (state === "hold" || state === "waiting") return <PauseCircleFilled />;
   return <WarningFilled />;
 }
 

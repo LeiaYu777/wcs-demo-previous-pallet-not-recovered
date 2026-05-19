@@ -16,9 +16,18 @@ const checkIcons: Record<CheckKey, React.ReactNode> = {
   nextPermission: <SendOutlined />,
 };
 
+function getActiveCheckKey(currentStep: DemoStep): CheckKey {
+  if (currentStep <= 1) return "takt";
+  if (currentStep <= 2) return "previousRecovery";
+  if (currentStep === 5) return "pointIdle";
+  if (currentStep === 6) return "nextPermission";
+  return "nextPermission";
+}
+
 export default function SystemDecisionPanel({ currentStep, state, t }: SystemDecisionPanelProps) {
   const recoveryActive = currentStep === 4 || currentStep === 5;
   const nextActive = currentStep === 3 || currentStep === 6;
+  const activeCheckKey = getActiveCheckKey(currentStep);
 
   return (
     <section className="panel system-panel">
@@ -31,7 +40,7 @@ export default function SystemDecisionPanel({ currentStep, state, t }: SystemDec
         <h3>{t.panels.checks}</h3>
         <div className="check-list">
           {state.checks.map((check) => (
-            <div className={`check-item check-${check.state}`} key={check.key}>
+            <div className={`check-item check-${check.state} ${check.key === activeCheckKey ? "active" : ""}`} key={check.key}>
               <div className="check-name">
                 {checkIcons[check.key]}
                 <span>{t.checks[check.key]}</span>

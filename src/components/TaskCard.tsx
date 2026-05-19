@@ -18,29 +18,19 @@ export default function TaskCard({ title, taskId, taskType, from, to, state, act
   const completed = state === "completed" || state === "executable";
 
   return (
-    <article className={`task-card ${active ? "active" : ""} ${dimmed ? "dimmed" : ""} ${completed ? "completed" : ""}`}>
+    <article className={`task-card ${active ? "active" : ""} ${dimmed ? "dimmed" : ""} ${completed ? "completed" : ""}`} aria-label={`${title} ${taskId}`}>
       <div className="task-card-head">
-        <h3>{title}</h3>
+        <h3>
+          <span>{taskId}</span>
+          <strong>{taskType}</strong>
+        </h3>
         <StatusPill state={state} label={t.status[state]} />
       </div>
 
-      <div className="task-fields">
-        <div>
-          <span>{t.tasks.taskId}</span>
-          <strong>{taskId}</strong>
-        </div>
-        <div>
-          <span>{t.tasks.taskType}</span>
-          <strong>{taskType}</strong>
-        </div>
-        <div>
-          <span>{t.tasks.from}</span>
-          <strong>{from}</strong>
-        </div>
-        <div>
-          <span>{t.tasks.to}</span>
-          <strong>{to}</strong>
-        </div>
+      <div className="task-route">
+        <span>{from}</span>
+        <b>→</b>
+        <span>{to}</span>
       </div>
 
       {completed ? (
