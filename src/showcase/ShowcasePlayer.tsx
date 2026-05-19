@@ -7,7 +7,6 @@ import {
   PauseCircleOutlined,
   PlayCircleOutlined,
   ReloadOutlined,
-  ThunderboltOutlined,
 } from "@ant-design/icons";
 import { Button, Progress, Segmented, Switch } from "antd";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -394,7 +393,7 @@ export default function ShowcasePlayer() {
       <header className="showcase-header">
         <div className="showcase-brand">
           <div className="showcase-brand-icon">
-            <ThunderboltOutlined />
+            <img src="/genstar-logo-mark.png" alt="GENSTAR" />
           </div>
           <div>
             <strong>{t.app.title}</strong>

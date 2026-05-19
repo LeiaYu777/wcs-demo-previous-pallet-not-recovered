@@ -1,6 +1,10 @@
 import PreviousPalletDemo from "../PreviousPalletDemo";
+import PlanImportDemo from "../PlanImportDemo";
 import SmallLineDemo from "../SmallLineDemo";
 import AsrsLineDeliveryDemo from "../AsrsLineDeliveryDemo";
+import ManualTakeoverDemo from "../ManualTakeoverDemo";
+import PointStatusMapDemo from "../PointStatusMapDemo";
+import TargetOccupiedDemo from "../TargetOccupiedDemo";
 import PlaceholderDemo from "./PlaceholderDemo";
 import type { DemoRegistryItem } from "./types";
 
@@ -24,7 +28,28 @@ export const demoRegistry: DemoRegistryItem[] = [
     enabled: true,
     showInPortal: true,
     showInShowcase: true,
-    component: PlaceholderDemo,
+    component: PlanImportDemo,
+  },
+  {
+    id: "demo2-point-status",
+    title: {
+      zh: "点位状态图",
+      ja: "点位状態マップ",
+    },
+    subtitle: {
+      zh: "统一显示立库出口、现编库、线边、缓存和异常点状态",
+      ja: "自動倉庫出口、現編庫、ラインサイド、バッファ、異常点位を一元表示",
+    },
+    portalTag: {
+      zh: "状态地图",
+      ja: "状態マップ",
+    },
+    path: "/point-status-demo",
+    durationMs: 16000,
+    enabled: true,
+    showInPortal: true,
+    showInShowcase: true,
+    component: PointStatusMapDemo,
   },
   {
     id: "small-line-logistics",
@@ -50,6 +75,48 @@ export const demoRegistry: DemoRegistryItem[] = [
     component: SmallLineDemo,
   },
   {
+    id: "asrs-line-delivery",
+    title: {
+      zh: "立库 + 现编库 + 线边配送",
+      ja: "自動倉庫 + 現編庫 + ラインサイド搬送",
+    },
+    subtitle: {
+      zh: "立库货到出口后自动检测、判断点位并联动 AGV",
+      ja: "出口到着後に検査・点位判定・AGV連携を自動化",
+    },
+    portalTag: {
+      zh: "立库联动",
+      ja: "自動倉庫連携",
+    },
+    path: "/asrs-line-demo",
+    durationMs: 16000,
+    enabled: true,
+    showInPortal: true,
+    showInShowcase: true,
+    component: AsrsLineDeliveryDemo,
+  },
+  {
+    id: "demo4-target-occupied",
+    title: {
+      zh: "目标点不空",
+      ja: "目標点位未空き",
+    },
+    subtitle: {
+      zh: "目标点不可收时，等待、转缓存并报警",
+      ja: "受入不可時に待機・バッファ搬送・アラートを実行",
+    },
+    portalTag: {
+      zh: "目标点校验",
+      ja: "納品先判定",
+    },
+    path: "/target-occupied-demo",
+    durationMs: 16000,
+    enabled: true,
+    showInPortal: true,
+    showInShowcase: true,
+    component: TargetOccupiedDemo,
+  },
+  {
     id: "demo5-previous-pallet",
     title: {
       zh: "上一托未回收",
@@ -72,88 +139,25 @@ export const demoRegistry: DemoRegistryItem[] = [
     component: PreviousPalletDemo,
   },
   {
-    id: "demo4-target-occupied",
+    id: "demo6-manual-takeover",
     title: {
-      zh: "目标点不空",
-      ja: "納品先点位未空き",
+      zh: "人工接管",
+      ja: "手動介入",
     },
     subtitle: {
-      zh: "目标点占用时等待、转缓存或报警",
-      ja: "点位占有時に待機・バッファ・アラートを判断",
+      zh: "人工释放、改目的地、转缓存、取消、重发与确认，全程留痕",
+      ja: "手動解放・目的地変更・バッファ搬送・取消・再送信・確認をすべて記録",
     },
     portalTag: {
-      zh: "目标点校验",
-      ja: "納品先判定",
+      zh: "人工接管",
+      ja: "手動介入",
     },
-    path: "/demo4",
-    durationMs: 15000,
-    enabled: false,
-    showInPortal: true,
-    showInShowcase: true,
-    component: PlaceholderDemo,
-  },
-  {
-    id: "asrs-line-delivery",
-    title: {
-      zh: "立库 + 现编库 + 线边配送",
-      ja: "自動倉庫 + 現編庫 + ラインサイド搬送",
-    },
-    subtitle: {
-      zh: "立库货到出口后自动检测、判断点位并联动 AGV",
-      ja: "出口到着後に検査・点位判定・AGV連携を自動化",
-    },
-    portalTag: {
-      zh: "立库联动",
-      ja: "自動倉庫連携",
-    },
-    path: "/asrs-line-demo",
+    path: "/manual-takeover-demo",
     durationMs: 16000,
     enabled: true,
     showInPortal: true,
     showInShowcase: true,
-    component: AsrsLineDeliveryDemo,
-  },
-  {
-    id: "demo-placeholder-6",
-    title: {
-      zh: "待定 Demo 6",
-      ja: "未定デモ 6",
-    },
-    subtitle: {
-      zh: "后续补充",
-      ja: "後日追加",
-    },
-    portalTag: {
-      zh: "预留场景位",
-      ja: "予約枠",
-    },
-    path: "/placeholder",
-    durationMs: 12000,
-    enabled: false,
-    showInPortal: true,
-    showInShowcase: true,
-    component: PlaceholderDemo,
-  },
-  {
-    id: "demo-placeholder-7",
-    title: {
-      zh: "待定 Demo 7",
-      ja: "未定デモ 7",
-    },
-    subtitle: {
-      zh: "后续补充",
-      ja: "後日追加",
-    },
-    portalTag: {
-      zh: "预留场景位",
-      ja: "予約枠",
-    },
-    path: "/placeholder",
-    durationMs: 12000,
-    enabled: false,
-    showInPortal: true,
-    showInShowcase: true,
-    component: PlaceholderDemo,
+    component: ManualTakeoverDemo,
   },
   {
     id: "demo-placeholder-8",

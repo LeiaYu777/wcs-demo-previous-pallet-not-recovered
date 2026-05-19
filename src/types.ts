@@ -10,6 +10,32 @@ export type CheckKey = "takt" | "previousRecovery" | "pointIdle" | "nextPermissi
 
 export type AsrsLineCheckKey = "outArrival" | "inspectConfirm" | "targetReceivable" | "agvPermission";
 
+export type TargetOccupiedCheckKey = "outArrival" | "cargoIdentity" | "targetReceivable" | "agvPermission";
+
+export type PlanImportCheckKey = "planImport" | "fieldParse" | "targetIdentify" | "taskGenerate";
+
+export type PlanRowStatus = "unparsed" | "parsing" | "generated";
+
+export type PlanTaskStatus = "notGenerated" | "generated" | "pending";
+
+export type ManualActionId =
+  | "manualReleasePoint"
+  | "manualChangeDestination"
+  | "manualTransferBuffer"
+  | "manualCancelTask"
+  | "manualResendRcs"
+  | "manualConfirmException";
+
+export type ManualActionState = "idle" | "active" | "done";
+
+export type ManualTaskStatus = "blocked" | "cancelled" | "notGenerated" | "running" | "completed" | "sent";
+
+export type ManualExceptionStatus = "active" | "processing" | "closed";
+
+export type PointStatus = "empty" | "occupied" | "reserved" | "waitingReturn" | "exception" | "receivable" | "notReceivable";
+
+export type PointType = "asrsExit" | "preBuffer" | "lineSide" | "buffer" | "exceptionPoint";
+
 export type TaskState = "notGenerated" | "pending" | "running" | "completed" | "hold" | "waitingPoint" | "executable";
 
 export type PointState = "waitingRecovery" | "empty";
@@ -38,7 +64,35 @@ export type LogKey =
   | "asrsTaskCreated"
   | "asrsTaskRunning"
   | "asrsFallbackReady"
-  | "asrsFlowComplete";
+  | "asrsFlowComplete"
+  | "pointMapLoaded"
+  | "pointOutOccupied"
+  | "pointTargetReceivable"
+  | "pointTaskCreated"
+  | "pointAgvRunning"
+  | "pointTaskCompleted"
+  | "pointExceptionShown"
+  | "targetOutArrived"
+  | "targetOccupiedFound"
+  | "targetRcsHeld"
+  | "targetWaitStarted"
+  | "targetWaitTimeout"
+  | "targetBufferRunning"
+  | "targetAlarmCreated"
+  | "planImportLoaded"
+  | "planFieldsParsed"
+  | "planTargetsIdentified"
+  | "planTask001Created"
+  | "planTask002Created"
+  | "planTask003Created"
+  | "planTasksReady"
+  | "manualExceptionCreated"
+  | "manualPointReleased"
+  | "manualDestinationChanged"
+  | "manualBufferStarted"
+  | "manualOriginalCancelled"
+  | "manualRcsResent"
+  | "manualExceptionClosed";
 
 export type SmallLineCheckKey = "planImport" | "timeCall" | "linePoint" | "deliveryPermission";
 
@@ -49,6 +103,12 @@ export type SmallLinePlanStatus = "imported" | "triggered";
 export type SmallLineAgvStatus = "standby" | "ready" | "pending" | "delivering" | "delivered" | "returning" | "returned";
 
 export type AsrsLineAgvStatus = "standby" | "confirming" | "pending" | "running" | "delivered" | "strategy";
+
+export type TargetOccupiedWaitStatus = "notStarted" | "waiting" | "timeout";
+
+export type TargetOccupiedAlarmStatus = "notGenerated" | "created";
+
+export type TargetOccupiedAgvStatus = "standby" | "held" | "waiting" | "buffering" | "completed";
 
 export interface CheckResult {
   key: CheckKey;
@@ -80,6 +140,122 @@ export interface SmallLineCheckResult {
 export interface AsrsLineCheckResult {
   key: AsrsLineCheckKey;
   state: CheckState;
+}
+
+export interface TargetOccupiedCheckResult {
+  key: TargetOccupiedCheckKey;
+  state: CheckState;
+}
+
+export interface PlanImportCheckResult {
+  key: PlanImportCheckKey;
+  state: CheckState;
+}
+
+export interface PlanImportRow {
+  id: string;
+  time: string;
+  line: string;
+  product: string;
+  materialZh: string;
+  materialJa: string;
+  qtyZh: string;
+  qtyJa: string;
+  target: string;
+}
+
+export interface PlanImportTask {
+  id: string;
+  planId: string;
+  typeZh: string;
+  typeJa: string;
+}
+
+export interface ManualAuditLog {
+  time: string;
+  operator: string;
+  actionId: ManualActionId;
+  target: string;
+  before: string;
+  after: string;
+  reason: string;
+}
+
+export interface PointMapNode {
+  id: string;
+  type: PointType;
+  status: PointStatus;
+  material?: string;
+  task?: string;
+}
+
+export type PointAgvStatus = "standby" | "pending" | "running" | "completed";
+
+export interface PointStatusMapState {
+  activeStage: StageId;
+  points: PointMapNode[];
+  selectedPointId: string;
+  taskStatus: TaskState;
+  routeState: RouteState;
+  agvStatus: PointAgvStatus;
+  stats: Record<PointStatus, number>;
+  activeStatuses: PointStatus[];
+  showExceptionFocus: boolean;
+}
+
+export interface TargetOccupiedDerivedState {
+  activeStage: StageId;
+  checks: TargetOccupiedCheckResult[];
+  outStatus: "arrived" | "released";
+  targetStatus: "unchecked" | "occupied" | "notReceivable";
+  bufferStatus: "empty" | "ready" | "buffering" | "buffered";
+  agvStatus: TargetOccupiedAgvStatus;
+  waitStatus: TargetOccupiedWaitStatus;
+  waitProgress: number;
+  waitCountdown: string;
+  originalTaskStatus: TaskState;
+  bufferTaskStatus: TaskState;
+  alarmStatus: TargetOccupiedAlarmStatus;
+  targetRoute: RouteState;
+  bufferRoute: RouteState;
+  showCargoAtOut: boolean;
+  showCargoAtBuffer: boolean;
+  showTargetOccupiedPallet: boolean;
+  isClosed: boolean;
+}
+
+export interface PlanImportDerivedState {
+  activeStage: StageId;
+  checks: PlanImportCheckResult[];
+  rowStatuses: Record<string, PlanRowStatus>;
+  taskStatuses: Record<string, PlanTaskStatus>;
+  activeRowId?: string;
+  activeTaskId?: string;
+  fieldHighlight: boolean;
+  targetHighlight: boolean;
+  generatedCount: number;
+  configActive: boolean;
+  nextStepActive: boolean;
+}
+
+export interface ManualTakeoverDerivedState {
+  activeStage: StageId;
+  exceptionStatus: ManualExceptionStatus;
+  actionStates: Record<ManualActionId, ManualActionState>;
+  originalTaskStatus: ManualTaskStatus;
+  bufferTaskStatus: ManualTaskStatus;
+  rcsTaskStatus: ManualTaskStatus;
+  originalRoute: RouteState;
+  bufferRoute: RouteState;
+  rcsRoute: RouteState;
+  pointReleased: boolean;
+  destinationChanged: boolean;
+  showCargoAtOut: boolean;
+  showCargoAtBuffer: boolean;
+  showCargoAtNewTarget: boolean;
+  agvStatus: "standby" | "paused" | "buffering" | "delivering" | "completed";
+  auditLogs: ManualAuditLog[];
+  isClosed: boolean;
 }
 
 export interface SmallLineDerivedState {
