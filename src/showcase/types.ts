@@ -38,10 +38,16 @@ export interface ShowcaseI18nDict {
     sceneMenu: string;
     sceneMenuHint: string;
     shortcutHint: string;
+    captionShort: string;
+    voiceShort: string;
   };
   controls: {
     start: string;
     pause: string;
+    captionOn: string;
+    captionOff: string;
+    voiceOn: string;
+    voiceOff: string;
     previous: string;
     next: string;
     replay: string;

@@ -8,6 +8,7 @@ import SubtitleAndLogPanel from "./components/SubtitleAndLogPanel";
 import TargetOccupiedDecisionPanel from "./components/TargetOccupiedDecisionPanel";
 import TargetOccupiedPhysicalScene from "./components/TargetOccupiedPhysicalScene";
 import { targetOccupiedDictionaries } from "./targetOccupiedI18n";
+import { useNarration } from "./showcase/useNarration";
 import { useShowcaseMode } from "./showcase/useShowcaseMode";
 import type { DemoStep, Language, LogKey, TargetOccupiedDerivedState } from "./types";
 
@@ -94,8 +95,8 @@ export default function TargetOccupiedDemo({ onHome }: TargetOccupiedDemoProps) 
   const [currentStep, setCurrentStep] = useState<DemoStep>(1);
   const [isPlaying, setIsPlaying] = useState(showcaseMode.isShowcaseMode && showcaseMode.shouldAutoplay);
   const [isLoop, setIsLoop] = useState(showcaseMode.shouldLoop);
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
-  const [subtitleEnabled, setSubtitleEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(showcaseMode.voiceEnabled);
+  const [subtitleEnabled, setSubtitleEnabled] = useState(showcaseMode.captionEnabled);
   const [logs, setLogs] = useState<LogKey[]>(STEP_LOGS[1]);
   const autoTimerRef = useRef<number | null>(null);
 
@@ -200,10 +201,20 @@ export default function TargetOccupiedDemo({ onHome }: TargetOccupiedDemoProps) 
 
       if (event.data.type === "SHOWCASE_PAUSE") {
         setIsPlaying(false);
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
       }
 
       if (event.data.type === "SHOWCASE_PLAY") {
         setIsPlaying(true);
+      }
+
+      if (event.data.type === "SHOWCASE_SETTINGS_CHANGED") {
+        if ("captionEnabled" in event.data) {
+          setSubtitleEnabled(Boolean(event.data.captionEnabled));
+        }
+        if ("voiceEnabled" in event.data) {
+          setVoiceEnabled(Boolean(event.data.voiceEnabled));
+        }
       }
     };
 
@@ -211,25 +222,7 @@ export default function TargetOccupiedDemo({ onHome }: TargetOccupiedDemoProps) 
     return () => window.removeEventListener("message", handleMessage);
   }, [showcaseMode.isShowcaseMode]);
 
-  useEffect(() => {
-    if (!voiceEnabled) {
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-      return;
-    }
-
-    if (!("speechSynthesis" in window)) {
-      console.info("Web Speech API is not supported in this browser.");
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(t.subtitles[currentStep]);
-    utterance.lang = language === "zh" ? "zh-CN" : "ja-JP";
-    utterance.rate = 0.92;
-    window.speechSynthesis.speak(utterance);
-  }, [currentStep, language, t, voiceEnabled]);
+  useNarration({ enabled: voiceEnabled, lang: language, stepKey: currentStep, text: t.subtitles[currentStep] });
 
   useEffect(() => {
     return () => {
@@ -263,11 +256,11 @@ export default function TargetOccupiedDemo({ onHome }: TargetOccupiedDemoProps) 
           />
         )}
         <StageTimeline activeStage={derivedState.activeStage} t={t} />
-        <main className="main-area">
+        <main className={`main-area ${currentStep <= 2 ? "focus-scene" : currentStep <= 4 ? "focus-system" : "focus-result"}`}>
           <TargetOccupiedPhysicalScene currentStep={currentStep} state={derivedState} t={t} />
           <TargetOccupiedDecisionPanel currentStep={currentStep} state={derivedState} t={t} />
         </main>
-        <SubtitleAndLogPanel currentStep={currentStep} logs={logs} subtitleEnabled={subtitleEnabled} t={t} />
+        <SubtitleAndLogPanel captionMode={showcaseMode.captionMode} currentStep={currentStep} language={language} logMode={showcaseMode.logMode} logs={logs} subtitleEnabled={subtitleEnabled} t={t} />
       </div>
     </ConfigProvider>
   );

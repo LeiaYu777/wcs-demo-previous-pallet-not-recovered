@@ -7,6 +7,8 @@ import {
   PauseCircleOutlined,
   PlayCircleOutlined,
   ReloadOutlined,
+  SoundOutlined,
+  SubnodeOutlined,
 } from "@ant-design/icons";
 import { Button, Progress, Segmented, Switch } from "antd";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -24,11 +26,23 @@ function formatDuration(durationMs: number) {
   return `${(durationMs / 1000).toFixed(1)}s`;
 }
 
+function readStoredBoolean(key: string, fallback: boolean) {
+  try {
+    const value = window.localStorage.getItem(key);
+    if (value === "1") return true;
+    if (value === "0") return false;
+  } catch {
+    return fallback;
+  }
+
+  return fallback;
+}
+
 function getFirstEnabledIndex() {
   return showcaseDemoPlaylist.findIndex((demo) => demo.enabled);
 }
 
-function buildFrameSrc(demo: ShowcaseDemoItem, language: ShowcaseLanguage, isPlaying: boolean, reloadAt: number) {
+function buildFrameSrc(demo: ShowcaseDemoItem, language: ShowcaseLanguage, isPlaying: boolean, reloadAt: number, captionEnabled: boolean, voiceEnabled: boolean) {
   const url = new URL(demo.path, window.location.origin);
   url.searchParams.set("showcase", "1");
   url.searchParams.set("autoplay", isPlaying ? "1" : "0");
@@ -36,6 +50,10 @@ function buildFrameSrc(demo: ShowcaseDemoItem, language: ShowcaseLanguage, isPla
   url.searchParams.set("hideControls", "1");
   url.searchParams.set("hideHeader", "1");
   url.searchParams.set("compact", "1");
+  url.searchParams.set("caption", captionEnabled ? "1" : "0");
+  url.searchParams.set("captionMode", "compact");
+  url.searchParams.set("voice", voiceEnabled ? "1" : "0");
+  url.searchParams.set("logMode", "compact");
   url.searchParams.set("lang", language);
   url.searchParams.set("demoId", demo.id);
 
@@ -69,6 +87,8 @@ export default function ShowcasePlayer() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [frameAutoplay, setFrameAutoplay] = useState(true);
   const [isLoop, setIsLoop] = useState(true);
+  const [captionEnabled, setCaptionEnabled] = useState(() => readStoredBoolean("showcase.captionEnabled", true));
+  const [voiceEnabled, setVoiceEnabled] = useState(() => readStoredBoolean("showcase.voiceEnabled", false));
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDockOpen, setIsDockOpen] = useState(false);
   const [isDockHovered, setIsDockHovered] = useState(false);
@@ -103,7 +123,7 @@ export default function ShowcasePlayer() {
     [t],
   );
   const currentDemo = currentIndex >= 0 ? showcaseDemoPlaylist[currentIndex] : fallbackDemo;
-  const frameSrc = buildFrameSrc(currentDemo, language, frameAutoplay, reloadAt);
+  const frameSrc = useMemo(() => buildFrameSrc(currentDemo, language, frameAutoplay, reloadAt, captionEnabled, voiceEnabled), [currentDemo, frameAutoplay, language, reloadAt]);
   const progressPercent = currentDemo.durationMs > 0 ? Math.min(100, (elapsedMs / currentDemo.durationMs) * 100) : 0;
   const remainingMs = Math.max(0, currentDemo.durationMs - elapsedMs);
   const playbackStateLabel = isPlaying ? t.status.playing : t.status.paused;
@@ -125,6 +145,7 @@ export default function ShowcasePlayer() {
   const resetFrame = useCallback(() => {
     touchInteraction();
     cancelPendingAdvance();
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     setElapsedMs(0);
     setFrameAutoplay(isPlaying);
     setReloadAt(Date.now());
@@ -133,6 +154,22 @@ export default function ShowcasePlayer() {
   const sendControlMessage = useCallback((type: "SHOWCASE_PAUSE" | "SHOWCASE_PLAY") => {
     iframeRef.current?.contentWindow?.postMessage({ type }, window.location.origin);
   }, []);
+
+  const sendSettingsMessage = useCallback(
+    (settings?: Partial<{ captionEnabled: boolean; voiceEnabled: boolean }>) => {
+      iframeRef.current?.contentWindow?.postMessage(
+        {
+          type: "SHOWCASE_SETTINGS_CHANGED",
+          captionEnabled: settings?.captionEnabled ?? captionEnabled,
+          voiceEnabled: settings?.voiceEnabled ?? voiceEnabled,
+          captionMode: "compact",
+          logMode: "compact",
+        },
+        window.location.origin,
+      );
+    },
+    [captionEnabled, voiceEnabled],
+  );
 
   const scheduleAdvance = useCallback(
     (delayMs: number) => {
@@ -183,6 +220,7 @@ export default function ShowcasePlayer() {
       return;
     }
 
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     setCurrentIndex(index);
     setPlaybackMode("manual");
     setShowDisabledNotice(false);
@@ -231,6 +269,25 @@ export default function ShowcasePlayer() {
     });
   }, [sendControlMessage, touchInteraction]);
 
+  const handleToggleCaption = useCallback(() => {
+    touchInteraction();
+    setCaptionEnabled((previous) => {
+      const next = !previous;
+      sendSettingsMessage({ captionEnabled: next });
+      return next;
+    });
+  }, [sendSettingsMessage, touchInteraction]);
+
+  const handleToggleVoice = useCallback(() => {
+    touchInteraction();
+    setVoiceEnabled((previous) => {
+      const next = !previous;
+      if (!next && "speechSynthesis" in window) window.speechSynthesis.cancel();
+      sendSettingsMessage({ voiceEnabled: next });
+      return next;
+    });
+  }, [sendSettingsMessage, touchInteraction]);
+
   const handleToggleDock = useCallback(() => {
     touchInteraction();
     setIsDockOpen((previous) => !previous);
@@ -240,6 +297,25 @@ export default function ShowcasePlayer() {
     touchInteraction();
     setIsDockOpen(true);
   }, [touchInteraction]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("showcase.captionEnabled", captionEnabled ? "1" : "0");
+    } catch {
+      // Ignore storage failures in restricted browser contexts.
+    }
+    sendSettingsMessage();
+  }, [captionEnabled, sendSettingsMessage]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("showcase.voiceEnabled", voiceEnabled ? "1" : "0");
+    } catch {
+      // Ignore storage failures in restricted browser contexts.
+    }
+    if (!voiceEnabled && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    sendSettingsMessage();
+  }, [sendSettingsMessage, voiceEnabled]);
 
   useEffect(() => {
     if (!isPlaying || currentIndex < 0 || enabledIndexes.length === 0) return undefined;
@@ -367,6 +443,18 @@ export default function ShowcasePlayer() {
         return;
       }
 
+      if (key === "c") {
+        event.preventDefault();
+        handleToggleCaption();
+        return;
+      }
+
+      if (key === "v") {
+        event.preventDefault();
+        handleToggleVoice();
+        return;
+      }
+
       if (key === "m") {
         event.preventDefault();
         handleToggleDock();
@@ -377,9 +465,11 @@ export default function ShowcasePlayer() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     handleLanguageChange,
+    handleToggleCaption,
     handleToggleDock,
     handleToggleFullscreen,
     handleTogglePlayback,
+    handleToggleVoice,
     isDockOpen,
     language,
     resetFrame,
@@ -424,6 +514,12 @@ export default function ShowcasePlayer() {
             <Button size="small" type={isPlaying ? "default" : "primary"} icon={isPlaying ? <PauseCircleOutlined /> : <PlayCircleOutlined />} onClick={handleTogglePlayback}>
               {isPlaying ? t.controls.pause : t.controls.start}
             </Button>
+            <Button size="small" className="showcase-toggle-button" type={captionEnabled ? "primary" : "default"} icon={<SubnodeOutlined />} onClick={handleToggleCaption}>
+              {captionEnabled ? t.controls.captionOn : t.controls.captionOff}
+            </Button>
+            <Button size="small" className="showcase-toggle-button" type={voiceEnabled ? "primary" : "default"} icon={<SoundOutlined />} onClick={handleToggleVoice}>
+              {voiceEnabled ? t.controls.voiceOn : t.controls.voiceOff}
+            </Button>
             <Button size="small" type={isDockOpen ? "primary" : "default"} icon={<AppstoreOutlined />} onClick={handleToggleDock}>
               {isDockOpen ? t.controls.collapseMenu : t.controls.menu}
             </Button>
@@ -436,7 +532,7 @@ export default function ShowcasePlayer() {
 
       <main className="showcase-main">
         <section className="showcase-frame-card">
-          <iframe ref={iframeRef} title={currentDemo.title[language]} src={frameSrc} />
+          <iframe ref={iframeRef} title={currentDemo.title[language]} src={frameSrc} onLoad={() => sendSettingsMessage()} />
         </section>
       </main>
 
@@ -448,6 +544,8 @@ export default function ShowcasePlayer() {
         <span>
           {currentIndex + 1} / {showcaseDemoPlaylist.length}
         </span>
+        <span>{captionEnabled ? `${t.labels.captionShort} ON` : `${t.labels.captionShort} OFF`}</span>
+        <span>{voiceEnabled ? `${t.labels.voiceShort} ON` : `${t.labels.voiceShort} OFF`}</span>
         <strong>{currentDemo.title[language]}</strong>
         <div className="showcase-mini-track">
           <i style={{ width: `${progressPercent}%` }} />
